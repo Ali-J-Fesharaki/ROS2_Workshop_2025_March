@@ -8,6 +8,7 @@ class VelocityPublisher:
         rospy.init_node('velocity_publisher', anonymous=True)
         self.vel_publisher = rospy.Publisher('/turtle1/cmd_vel', Twist, queue_size=10)
         self.vel_msg=Twist()
+        self.ctrl_c=False
         self.rate = rospy.Rate(2)  # 2 Hz
         rospy.loginfo("Velocity Publisher Node has been started.")
         rospy.on_shutdown(self.shutdownhook)
@@ -18,7 +19,7 @@ class VelocityPublisher:
             if connections>0:
                 self.vel_msg.linear.x = 1.0  # Move forward
                 self.vel_msg.angular.z = 0.5  # Rotate
-                self.publisher.publish(self.vel_msg)
+                self.vel_publisher.publish(self.vel_msg)
                 rospy.loginfo(f"Published velocity: linear.x={self.vel_msg.linear.x}, angular.z={self.vel_msg.angular.z}")
                 self.rate.sleep()
                 

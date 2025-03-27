@@ -40,6 +40,6 @@ class NavActionClient:
 if __name__ == '__main__':
     try:
         client = NavActionClient()
-        client.send_goal(goal_x=5.0, goal_y=5.0, namespace="turtle1")  # Example goal
+        client.send_goal(goal_x=7.0, goal_y=7.0, namespace="turtle1")  # Example goal
     except rospy.ROSInterruptException:
         pass

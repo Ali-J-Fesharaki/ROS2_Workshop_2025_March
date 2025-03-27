@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-from geometry_msgs.pos_msg import Pose
+from turtlesim.msg import Pose
 
 class PositionSubscriber:
     def __init__(self):

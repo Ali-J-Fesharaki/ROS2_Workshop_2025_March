@@ -51,11 +51,13 @@ class NavActionServer:
                 continue
 
             # Calculate errors
-            x_error = goal.goal_x - self.current_pose['x']
-            y_error = goal.goal_y - self.current_pose['y']
+            x_error = goal.pose.x - self.current_pose['x']
+            y_error = goal.pose.y - self.current_pose['y']
+            rospy.loginfo(f"Current Pose: {self.current_pose}, Goal Pose: {goal.pose}")
             distance_to_goal = math.sqrt(x_error**2 + y_error**2)
             goal_angle = math.atan2(y_error, x_error)
             yaw_error = goal_angle - self.current_pose['yaw']
+            rospy.loginfo(f"current_angle: {self.current_pose['yaw']}, goal_angle: {goal_angle}, yaw_error: {yaw_error}")
 
             # Normalize yaw error
             yaw_error = math.atan2(math.sin(yaw_error), math.cos(yaw_error))
@@ -75,12 +77,12 @@ class NavActionServer:
             # Calculate control commands
             cmd_vel = Twist()
             if abs(yaw_error) > 0.1:  # Threshold for yaw correction
-                cmd_vel.angular.z = 1.0 if yaw_error > 0 else -1.0
+                cmd_vel.angular.z = 0.5 if yaw_error > 0 else -0.5
             else:
                 cmd_vel.angular.z = 0.0
 
             if distance_to_goal > 0.1:  # Threshold for forward motion
-                cmd_vel.linear.x = 1.0
+                cmd_vel.linear.x = 0.2
             else:
                 cmd_vel.linear.x = 0.0
 

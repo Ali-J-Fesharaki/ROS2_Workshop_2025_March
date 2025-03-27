@@ -2,7 +2,7 @@
 <package format="2">
   <name>service_server_client</name>
   <version>0.0.0</version>
-  <description>The service_client package</description>
+  <description>The service_server_client package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
@@ -19,7 +19,7 @@
   <!-- Url tags are optional, but multiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/service_client</url> -->
+  <!-- <url type="website">http://wiki.ros.org/service_server_client</url> -->
 
 
   <!-- Author tags are optional, multiple are allowed, one per tag -->
@@ -53,15 +53,17 @@
   <build_depend>rospy</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>turtlesim</build_depend>
+  <build_depend>message_generation</build_depend>
   <build_export_depend>geometry_msgs</build_export_depend>
   <build_export_depend>rospy</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
   <build_export_depend>turtlesim</build_export_depend>
+  <build_export_depend>message_runtime</build_export_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>rospy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>turtlesim</exec_depend>
-
+  <exec_depend>message_runtime</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

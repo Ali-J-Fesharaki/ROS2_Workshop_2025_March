@@ -4,18 +4,18 @@ import random
 
 #!/usr/bin/env python
 
-from service_client.srv import SpawnTurtles, SpawnTurtlesResponse  # Replace with your custom service name
+from service_server_client.srv import MultipleSpawner, MultipleSpawnerResponse  # Replace with your custom service name
 
 class TurtleSpawnerService:
     def __init__(self):
         rospy.init_node('turtle_spawner_service_server')
-        self.service = rospy.Service('spawn_turtles', SpawnTurtles, self.handle_spawn_turtles)
+        self.service = rospy.Service('spawn_turtles', MultipleSpawner, self.handle_spawn_turtles)
         rospy.loginfo("Turtle Spawner Service is ready.")
 
     def handle_spawn_turtles(self, req):
-        rospy.loginfo(f"Received request to spawn {req.num_turtles} turtles with root name '{req.root_name}'")
+        rospy.loginfo(f"Received request to spawn {req.num_robots} turtles with root name '{req.root_name}'")
         responses = []
-        for i in range(req.num_turtles):
+        for i in range(req.num_robots):
             turtle_name = f"{req.root_name}_{i+1}"
             x, y, theta = self.generate_random_pose()
             rospy.loginfo(f"Spawning turtle: {turtle_name} at ({x}, {y}, {theta})")
@@ -26,7 +26,7 @@ class TurtleSpawnerService:
             except rospy.ServiceException as e:
                 rospy.logerr(f"Failed to spawn turtle {turtle_name}: {e}")
                 responses.append(f"Error: {e}")
-        return SpawnTurtlesResponse(responses)
+        return MultipleSpawnerResponse(responses)
 
     @staticmethod
     def generate_random_pose():

@@ -1,0 +1,11 @@
+# Goal
+string namespace
+geometry_msgs/Pose2D pose
+
+---
+# Result
+bool success
+
+---
+# Feedback
+float32 distance_to_goal

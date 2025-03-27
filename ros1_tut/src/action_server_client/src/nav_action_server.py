@@ -5,7 +5,7 @@ from geometry_msgs.msg import Twist
 from turtlesim.msg import Pose
 import math
 from actionlib import SimpleActionServer
-from custom_msgs.msg import NavigateToPointAction, NavigateToPointFeedback, NavigateToPointResult  # Replace with your custom action
+from action_server_client.msg import Robot2dNavAction, Robot2dNavFeedback, Robot2dNavResult  
 
 
 class NavActionServer:
@@ -15,7 +15,7 @@ class NavActionServer:
         # Action server setup
         self.action_server = SimpleActionServer(
             'navigate_to_point',
-            NavigateToPointAction,
+            Robot2dNavAction,
             execute_cb=self.execute_callback,
             auto_start=False
         )
@@ -32,7 +32,7 @@ class NavActionServer:
         }
 
     def execute_callback(self, goal):
-        rospy.loginfo(f"Received goal: x={goal.goal_x}, y={goal.goal_y}, namespace={goal.namespace}")
+        rospy.loginfo(f"Received goal: x={goal.pose.x}, y={goal.pose.y}, namespace={goal.namespace}")
 
         # Update topic names based on the namespace
         cmd_vel_topic = f"/{goal.namespace}/cmd_vel"
@@ -42,8 +42,8 @@ class NavActionServer:
         self.cmd_vel_publisher = rospy.Publisher(cmd_vel_topic, Twist, queue_size=10)
         self.pose_subscriber = rospy.Subscriber(pose_topic, Pose, self.pose_callback)
 
-        feedback = NavigateToPointFeedback()
-        result = NavigateToPointResult()
+        feedback = Robot2dNavFeedback()
+        result = Robot2dNavResult()
 
         rate = rospy.Rate(10)  # 10 Hz loop rate
         while not rospy.is_shutdown():

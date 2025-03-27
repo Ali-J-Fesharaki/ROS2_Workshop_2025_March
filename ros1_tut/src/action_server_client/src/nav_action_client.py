@@ -1,16 +1,15 @@
-import rospy
-import actionlib
-
 #!/usr/bin/env python3
 
-from custom_msgs.msg import NavigateToPointAction, NavigateToPointGoal  # Replace with your custom action
+import rospy
+import actionlib
+from action_server_client.msg import Robot2dNavAction, Robot2dNavGoal  
 
 class NavActionClient:
     def __init__(self):
         rospy.init_node('nav_action_client')
 
         # Create an action client
-        self.client = actionlib.SimpleActionClient('navigate_to_point', NavigateToPointAction)
+        self.client = actionlib.SimpleActionClient('navigate_to_point', Robot2dNavAction)
 
         rospy.loginfo("Waiting for action server to start...")
         self.client.wait_for_server()
@@ -18,9 +17,9 @@ class NavActionClient:
 
     def send_goal(self, goal_x, goal_y, namespace):
         # Create a goal to send to the action server
-        goal = NavigateToPointGoal()
-        goal.goal_x = goal_x
-        goal.goal_y = goal_y
+        goal = Robot2dNavGoal()
+        goal.pose.x = goal_x
+        goal.pose.y = goal_y
         goal.namespace = namespace
 
         rospy.loginfo(f"Sending goal: x={goal_x}, y={goal_y}, namespace={namespace}")

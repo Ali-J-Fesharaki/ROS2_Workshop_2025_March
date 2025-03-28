@@ -4,7 +4,7 @@ import rclpy
 from rclpy.node import Node
 from action_msgs.msg import GoalStatus
 from rclpy.action import ActionClient
-from action_server_client.action import Robot2dNav  # Adjust import based on your package structure
+from custom_interfaces.action import Robot2dNav  # Adjust import based on your package structure
 
 class NavActionClient(Node):
     def __init__(self):
@@ -17,14 +17,14 @@ class NavActionClient(Node):
         self._action_client.wait_for_server()
         self.get_logger().info("Action server started, ready to send goals.")
 
-    def send_goal(self, goal_x, goal_y, namespace):
+    def send_goal(self, goal_x, goal_y, robot_name):
         # Create a goal to send to the action server
         goal_msg = Robot2dNav.Goal()
         goal_msg.pose.x = goal_x
         goal_msg.pose.y = goal_y
-        goal_msg.namespace = namespace
+        goal_msg.robot_name = robot_name
 
-        self.get_logger().info(f"Sending goal: x={goal_x}, y={goal_y}, namespace={namespace}")
+        self.get_logger().info(f"Sending goal: x={goal_x}, y={goal_y}, robot_name={robot_name}")
         self._action_client.send_goal_async(goal_msg, feedback_callback=self.feedback_callback).add_done_callback(self.goal_response_callback)
 
     def goal_response_callback(self, future):
@@ -51,7 +51,7 @@ def main(args=None):
     rclpy.init(args=args)
     try:
         client = NavActionClient()
-        client.send_goal(goal_x=7.0, goal_y=7.0, namespace="turtle1")  # Example goal
+        client.send_goal(goal_x=7.0, goal_y=7.0, robot_name="turtle1")  # Example goal
         rclpy.spin(client)
     except KeyboardInterrupt:
         pass

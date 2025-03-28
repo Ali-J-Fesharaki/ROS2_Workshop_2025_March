@@ -5,7 +5,7 @@ from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from turtlesim.msg import Pose
 from rclpy.action import ActionServer
-from action_server_client.action import Robot2dNav
+from custom_interfaces.action import Robot2dNav
 import math
 
 
@@ -24,6 +24,7 @@ class NavActionServer(Node):
         self.current_pose = None
         self.cmd_vel_publisher = None
         self.pose_subscription = None
+        self.timer = None
 
     def pose_callback(self, msg):
         # Update the current pose of the robot
@@ -33,65 +34,67 @@ class NavActionServer(Node):
             'yaw': msg.theta
         }
 
-    async def execute_callback(self, goal_handle):
-        self.get_logger().info(f"Received goal: x={goal_handle.request.pose.x}, y={goal_handle.request.pose.y}, namespace={goal_handle.request.namespace}")
+    def execute_callback(self, goal_handle):
+        self.get_logger().info(f"Received goal: x={goal_handle.request.pose.x}, y={goal_handle.request.pose.y}, robot_name={goal_handle.request.robot_name}")
 
-        # Update topic names based on the namespace
-        cmd_vel_topic = f"/{goal_handle.request.namespace}/cmd_vel"
-        pose_topic = f"/{goal_handle.request.namespace}/pose"
+        # Update topic names based on the robot_name
+        cmd_vel_topic = f"/{goal_handle.request.robot_name}/cmd_vel"
+        pose_topic = f"/{goal_handle.request.robot_name}/pose"
 
         # Publishers and subscribers
         self.cmd_vel_publisher = self.create_publisher(Twist, cmd_vel_topic, 10)
         self.pose_subscription = self.create_subscription(Pose, pose_topic, self.pose_callback, 10)
 
-        feedback_msg = Robot2dNav.Feedback()
-        result = Robot2dNav.Result()
+        self.feedback_msg = Robot2dNav.Feedback()
+        self.result = Robot2dNav.Result()
+        self.goal_handle = goal_handle
 
-        rate = self.create_rate(10)  # 10 Hz loop rate
-        while rclpy.ok():
-            if self.current_pose is None:
-                continue
+        # Start a timer to control the robot
+        self.timer = self.create_timer(0.1, self.control_loop)  # 10 Hz
 
-            # Calculate errors
-            x_error = goal_handle.request.pose.x - self.current_pose['x']
-            y_error = goal_handle.request.pose.y - self.current_pose['y']
-            self.get_logger().info(f"Current Pose: {self.current_pose}, Goal Pose: {goal_handle.request.pose}")
-            distance_to_goal = math.sqrt(x_error**2 + y_error**2)
-            goal_angle = math.atan2(y_error, x_error)
-            yaw_error = goal_angle - self.current_pose['yaw']
-            self.get_logger().info(f"current_angle: {self.current_pose['yaw']}, goal_angle: {goal_angle}, yaw_error: {yaw_error}")
+    def control_loop(self):
+        if self.current_pose is None:
+            return
 
-            # Normalize yaw error
-            yaw_error = math.atan2(math.sin(yaw_error), math.cos(yaw_error))
+        # Calculate errors
+        x_error = self.goal_handle.request.pose.x - self.current_pose['x']
+        y_error = self.goal_handle.request.pose.y - self.current_pose['y']
+        self.get_logger().info(f"Current Pose: {self.current_pose}, Goal Pose: {self.goal_handle.request.pose}")
+        distance_to_goal = math.sqrt(x_error**2 + y_error**2)
+        goal_angle = math.atan2(y_error, x_error)
+        yaw_error = goal_angle - self.current_pose['yaw']
+        self.get_logger().info(f"current_angle: {self.current_pose['yaw']}, goal_angle: {goal_angle}, yaw_error: {yaw_error}")
 
-            # Publish feedback
-            feedback_msg.distance_to_goal = distance_to_goal
-            goal_handle.publish_feedback(feedback_msg)
+        # Normalize yaw error
+        yaw_error = math.atan2(math.sin(yaw_error), math.cos(yaw_error))
 
-            # Check if goal is reached
-            if distance_to_goal < 0.1:  # Threshold for reaching the goal
-                self.get_logger().info("Goal reached!")
-                result.success = True
-                self.cmd_vel_publisher.publish(Twist())  # Stop the robot
-                goal_handle.succeed()
-                return result
+        # Publish feedback
+        self.feedback_msg.distance_to_goal = distance_to_goal
+        self.goal_handle.publish_feedback(self.feedback_msg)
 
-            # Calculate control commands
-            cmd_vel = Twist()
-            if abs(yaw_error) > 0.1:  # Threshold for yaw correction
-                cmd_vel.angular.z = 0.5 if yaw_error > 0 else -0.5
-            else:
-                cmd_vel.angular.z = 0.0
+        # Check if goal is reached
+        if distance_to_goal < 0.1:  # Threshold for reaching the goal
+            self.get_logger().info("Goal reached!")
+            self.result.success = True
+            self.cmd_vel_publisher.publish(Twist())  # Stop the robot
+            self.goal_handle.succeed()
+            self.timer.cancel()  # Stop the timer
+            return
 
-            if distance_to_goal > 0.1:  # Threshold for forward motion
-                cmd_vel.linear.x = 0.2
-            else:
-                cmd_vel.linear.x = 0.0
+        # Calculate control commands
+        cmd_vel = Twist()
+        if abs(yaw_error) > 0.1:  # Threshold for yaw correction
+            cmd_vel.angular.z = 0.5 if yaw_error > 0 else -0.5
+        else:
+            cmd_vel.angular.z = 0.0
 
-            # Publish cmd_vel
-            self.cmd_vel_publisher.publish(cmd_vel)
+        if distance_to_goal > 0.1:  # Threshold for forward motion
+            cmd_vel.linear.x = 0.2
+        else:
+            cmd_vel.linear.x = 0.0
 
-            rate.sleep()
+        # Publish cmd_vel
+        self.cmd_vel_publisher.publish(cmd_vel)
 
 
 def main(args=None):

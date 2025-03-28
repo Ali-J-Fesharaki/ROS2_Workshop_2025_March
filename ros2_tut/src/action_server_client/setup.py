@@ -20,6 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'nav_action_server = action_server_client.nav_action_server:main',
+            'nav_action_client = action_server_client.nav_action_client:main',
         ],
     },
 )

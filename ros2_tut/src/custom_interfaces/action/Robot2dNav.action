@@ -1,5 +1,5 @@
 # Goal
-string robot_name
+string namespace
 geometry_msgs/Pose2D pose
 
 ---

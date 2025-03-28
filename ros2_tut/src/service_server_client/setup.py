@@ -20,6 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'spawn_service_server = service_server_client.spawn_service_server:main',
+            'spawn_service_client = service_server_client.spawn_service_client:main',
         ],
     },
 )

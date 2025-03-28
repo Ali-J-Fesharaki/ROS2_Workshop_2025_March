@@ -32,11 +32,11 @@ class NavActionServer:
         }
 
     def execute_callback(self, goal):
-        rospy.loginfo(f"Received goal: x={goal.pose.x}, y={goal.pose.y}, namespace={goal.namespace}")
+        rospy.loginfo(f"Received goal: x={goal.pose.x}, y={goal.pose.y}, robot_name={goal.robot_name}")
 
-        # Update topic names based on the namespace
-        cmd_vel_topic = f"/{goal.namespace}/cmd_vel"
-        pose_topic = f"/{goal.namespace}/pose"
+        # Update topic names based on the robot_name
+        cmd_vel_topic = f"/{goal.robot_name}/cmd_vel"
+        pose_topic = f"/{goal.robot_name}/pose"
 
         # Publishers and subscribers
         self.cmd_vel_publisher = rospy.Publisher(cmd_vel_topic, Twist, queue_size=10)

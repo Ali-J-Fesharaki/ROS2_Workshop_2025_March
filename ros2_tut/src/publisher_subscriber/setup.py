@@ -20,6 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'position_subscriber = publisher_subscriber.position_subscriber:main',
+            'velocity_publisher = publisher_subscriber.velocity_publisher:main',
         ],
     },
 )

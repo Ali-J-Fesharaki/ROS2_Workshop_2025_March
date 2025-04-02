@@ -24,8 +24,12 @@ class NavActionClient(Node):
         goal_msg.pose.y = goal_y
         goal_msg.robot_name = robot_name
 
-        self.get_logger().info(f"Sending goal: x={goal_x}, y={goal_y}, robot_name={robot_name}")
-        self._action_client.send_goal_async(goal_msg, feedback_callback=self.feedback_callback).add_done_callback(self.goal_response_callback)
+        self._action_client.wait_for_server()
+
+        self.goal_future= self._action_client.send_goal_async(goal_msg,feedback_callback=self.feedback_callback)
+
+        self.goal_future.add_done_callback(self.goal_response_callback)
+
 
     def goal_response_callback(self, future):
         goal_handle = future.result()

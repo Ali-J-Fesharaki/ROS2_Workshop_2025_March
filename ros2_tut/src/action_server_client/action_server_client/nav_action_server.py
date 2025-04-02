@@ -7,6 +7,7 @@ from turtlesim.msg import Pose
 from rclpy.action import ActionServer
 from custom_interfaces.action import Robot2dNav
 import math
+import time
 
 
 class NavActionServer(Node):
@@ -25,7 +26,11 @@ class NavActionServer(Node):
         self.cmd_vel_publisher = None
         self.pose_subscription = None
         self.timer = None
-
+        self.operation_finished= False
+        self.feedback_msg = Robot2dNav.Feedback()
+        self.result = Robot2dNav.Result()
+        self.result.success = False
+        self.timer = self.create_timer(0.1, self.control_loop)  # 10 Hz
     def pose_callback(self, msg):
         # Update the current pose of the robot
         self.current_pose = {
@@ -44,13 +49,14 @@ class NavActionServer(Node):
         # Publishers and subscribers
         self.cmd_vel_publisher = self.create_publisher(Twist, cmd_vel_topic, 10)
         self.pose_subscription = self.create_subscription(Pose, pose_topic, self.pose_callback, 10)
-
-        self.feedback_msg = Robot2dNav.Feedback()
-        self.result = Robot2dNav.Result()
         self.goal_handle = goal_handle
-
+        while(self.operation_finished == False):
+            time.sleep(0.1)
+        print("Operation finished")
+        self.goal_handle.succeed()
+        return self.result
         # Start a timer to control the robot
-        self.timer = self.create_timer(0.1, self.control_loop)  # 10 Hz
+        
 
     def control_loop(self):
         if self.current_pose is None:
@@ -77,9 +83,9 @@ class NavActionServer(Node):
             self.get_logger().info("Goal reached!")
             self.result.success = True
             self.cmd_vel_publisher.publish(Twist())  # Stop the robot
-            self.goal_handle.succeed()
+            self.operation_finished = True
             self.timer.cancel()  # Stop the timer
-            return
+            return 
 
         # Calculate control commands
         cmd_vel = Twist()
@@ -101,7 +107,9 @@ def main(args=None):
     rclpy.init(args=args)
     server = NavActionServer()
     try:
-        rclpy.spin(server)
+        executor=rclpy.executors.MultiThreadedExecutor()
+        executor.add_node(server)
+        executor.spin()
     except KeyboardInterrupt:
         server.get_logger().info('Shutting down...')
     finally:

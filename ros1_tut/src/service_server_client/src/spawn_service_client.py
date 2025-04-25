@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
+import rosnode
 from service_server_client.srv import MultipleSpawner, MultipleSpawnerRequest
 
 class SpawnServiceClient:

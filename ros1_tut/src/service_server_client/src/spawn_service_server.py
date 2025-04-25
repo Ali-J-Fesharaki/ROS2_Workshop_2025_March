@@ -14,8 +14,23 @@ class TurtleSpawnerService:
     def handle_spawn_turtles(self, req):
         rospy.loginfo(f"Received request to spawn {req.num_robots} turtles with root name '{req.root_name}'")
         responses = []
+        topics_names = rospy.get_published_topics()
+        import re
+        # Find the highest number associated with the root_name in the topics
+        pattern = re.compile(rf"{req.root_name}_(\d+)")
+        last_number = 0
+
+        for topic, _ in topics_names:
+            match = pattern.search(topic)
+            print(match)
+            if match:
+                number = int(match.group(1))
+                if number > last_number:
+                    last_number = number
+            else:
+                last_number=0
         for i in range(req.num_robots):
-            turtle_name = f"{req.root_name}_{i+1}"
+            turtle_name = f"{req.root_name}_{last_number+i+1}"
             x, y, theta = self.generate_random_pose()
             rospy.loginfo(f"Spawning turtle: {turtle_name} at ({x}, {y}, {theta})")
             try:

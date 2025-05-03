@@ -15,14 +15,14 @@ class NavActionClient:
         self.client.wait_for_server()
         rospy.loginfo("Action server started, ready to send goals.")
 
-    def send_goal(self, goal_x, goal_y, namespace):
+    def send_goal(self, goal_x, goal_y, robot_name):
         # Create a goal to send to the action server
         goal = Robot2dNavGoal()
         goal.pose.x = goal_x
         goal.pose.y = goal_y
-        goal.namespace = namespace
+        goal.robot_name = robot_name
 
-        rospy.loginfo(f"Sending goal: x={goal_x}, y={goal_y}, namespace={namespace}")
+        rospy.loginfo(f"Sending goal: x={goal_x}, y={goal_y}, robot_name={robot_name}")
         self.client.send_goal(goal, feedback_cb=self.feedback_callback)
 
         # Wait for the result
@@ -40,6 +40,6 @@ class NavActionClient:
 if __name__ == '__main__':
     try:
         client = NavActionClient()
-        client.send_goal(goal_x=7.0, goal_y=7.0, namespace="turtle1")  # Example goal
+        client.send_goal(goal_x=7.0, goal_y=7.0, robot_name="turtle1")  # Example goal
     except rospy.ROSInterruptException:
         pass

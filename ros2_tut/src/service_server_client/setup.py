@@ -22,6 +22,7 @@ setup(
         'console_scripts': [
             'spawn_service_server = service_server_client.spawn_service_server:main',
             'spawn_service_client = service_server_client.spawn_service_client:main',
+            'simple_spawn = service_server_client.simple_spawn:main',
         ],
     },
 )

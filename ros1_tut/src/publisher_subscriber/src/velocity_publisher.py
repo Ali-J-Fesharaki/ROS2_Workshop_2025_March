@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import rospy
 from geometry_msgs.msg import Twist
@@ -9,7 +9,7 @@ class VelocityPublisher:
         self.vel_publisher = rospy.Publisher('/turtle1/cmd_vel', Twist, queue_size=10)
         self.vel_msg=Twist()
         self.ctrl_c=False
-        self.rate = rospy.Rate(2)  # 2 Hz
+        self.rate = rospy.Rate(0.5) 
         rospy.loginfo("Velocity Publisher Node has been started.")
         rospy.on_shutdown(self.shutdownhook)
 

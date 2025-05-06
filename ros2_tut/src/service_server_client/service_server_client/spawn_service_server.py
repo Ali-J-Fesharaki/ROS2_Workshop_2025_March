@@ -1,48 +1,66 @@
+#!/usr/bin/env python3
+
 import rclpy
 from rclpy.node import Node
 from turtlesim.srv import Spawn
 import random
+import time
 
-from service_server_client.srv import MultipleSpawner, MultipleSpawnerResponse  # Replace with your custom service name
+from custom_interfaces.srv import MultipleSpawner    # Replace with your custom service name
 
 class TurtleSpawnerService(Node):
     def __init__(self):
         super().__init__('turtle_spawner_service_server')
         self.service = self.create_service(MultipleSpawner, 'spawn_turtles', self.handle_spawn_turtles)
         self.get_logger().info("Turtle Spawner Service is ready.")
-
+        self.handler_spawn_service=self.create_client(Spawn, '/spawn')
+        self.counter_response=0
+        self.response=MultipleSpawner.Response()
+        self.request=MultipleSpawner.Request()
     def handle_spawn_turtles(self, request, response):
+        self.futures=[]
         self.get_logger().info(f"Received request to spawn {request.num_robots} turtles with root name '{request.root_name}'")
-        responses = []
+        self.counter_response=0
+        last_number=self.correct_robot_indexes()
         for i in range(request.num_robots):
-            turtle_name = f"{request.root_name}_{i+1}"
+            turtle_name = f"{request.root_name}_{last_number+i+1}"
             x, y, theta = self.generate_random_pose()
             self.get_logger().info(f"Spawning turtle: {turtle_name} at ({x}, {y}, {theta})")
-            try:
-                spawn_turtle_client = self.create_client(Spawn, '/spawn')
-                if not spawn_turtle_client.wait_for_service(timeout_sec=5.0):
-                    self.get_logger().error(f"Service '/spawn' not available.")
-                    responses.append(f"Error: Service '/spawn' not available.")
-                    continue
+            spawn_request = Spawn.Request()
+            spawn_request.x = x
+            spawn_request.y = y
+            spawn_request.theta = theta
+            spawn_request.name = turtle_name  
+            future = self.handler_spawn_service.call_async(spawn_request)
+            future.add_done_callback(self.adding_results_to_list)
+        self.timeout_timer = self.create_timer(10.0, self.on_timeout)
+        self.check_timer = self.create_timer(0.1, self.check_if_all_done)
 
-                spawn_request = Spawn.Request()
-                spawn_request.x = x
-                spawn_request.y = y
-                spawn_request.theta = theta
-                spawn_request.name = turtle_name
+        return self.response  # This will complete later
 
-                future = spawn_turtle_client.call_async(spawn_request)
-                rclpy.spin_until_future_complete(self, future)
-                if future.result() is not None:
-                    responses.append(turtle_name)
-                else:
-                    self.get_logger().error(f"Failed to spawn turtle {turtle_name}: {future.exception()}")
-                    responses.append(f"Error: {future.exception()}")
-            except Exception as e:
-                self.get_logger().error(f"Failed to spawn turtle {turtle_name}: {e}")
-                responses.append(f"Error: {e}")
-        response.names = responses
-        return response
+
+    def check_if_all_done(self):
+        if self.counter_response >= self.request.num_robots:
+            self.get_logger().info("All turtles spawned successfully.")
+            self.cleanup_timers()
+            print(self.futures)
+            self.response.success = self.futures
+
+    def cleanup_timers(self):
+        self.timeout_timer.cancel()
+        self.check_timer.cancel()
+
+    def on_timeout(self):
+        self.get_logger().warn("Timeout while waiting for turtles to spawn.")
+        self.cleanup_timers()
+        self.response.success = self.futures
+
+
+    def adding_results_to_list(self,future):
+        temp=future.result().name is not None
+        print(temp)
+        self.counter_response+=1
+        self.futures.append(temp)
 
     @staticmethod
     def generate_random_pose():
@@ -51,16 +69,25 @@ class TurtleSpawnerService(Node):
         theta = random.uniform(0, 2 * 3.14159)
         return x, y, theta
 
+    def correct_robot_indexes(self):
+        topics_names = self.get_topic_names_and_types()
+        last_number = 0
+        for topic, _ in topics_names:
+            if topic.startswith('/turtle'):
+                try:
+                    number = int(topic.split('/')[1].split('_')[1])
+                    if number > last_number:
+                        last_number = number
+                except (IndexError, ValueError):
+                    pass
+        return last_number
+    
 def main(args=None):
     rclpy.init(args=args)
     node = TurtleSpawnerService()
-    try:
-        rclpy.spin(node)
-    except KeyboardInterrupt:
-        node.get_logger().info("Turtle Spawner Service shutting down.")
-    finally:
-        node.destroy_node()
-        rclpy.shutdown()
+    rclpy.spin(node)
+    node.destroy_node()
+    rclpy.shutdown()
 
 if __name__ == '__main__':
     main()

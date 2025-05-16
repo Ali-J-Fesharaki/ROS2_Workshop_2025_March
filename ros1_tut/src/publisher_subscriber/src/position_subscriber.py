@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import rospy.
+import rospy
 from turtlesim.msg import Pose
 
 class PositionSubscriber:

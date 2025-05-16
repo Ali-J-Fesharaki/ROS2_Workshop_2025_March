@@ -40,6 +40,9 @@ class NavActionClient:
 if __name__ == '__main__':
     try:
         client = NavActionClient()
-        client.send_goal(goal_x=7.0, goal_y=7.0, robot_name="turtle1")  # Example goal
+        goal_x = rospy.get_param('goal_x')
+        goal_y = rospy.get_param('goal_y')
+        agent_name = rospy.get_param('agent_name')
+        client.send_goal(goal_x=goal_x, goal_y=goal_y, robot_name=agent_name)
     except rospy.ROSInterruptException:
         pass

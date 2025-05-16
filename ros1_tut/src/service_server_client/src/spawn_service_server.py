@@ -15,7 +15,7 @@ class TurtleSpawnerService:
         rospy.loginfo(f"Received request to spawn {req.num_robots} turtles with root name '{req.root_name}'")
         responses = []
         topics_names = rospy.get_published_topics()
-        last_number=correct_robot_indexes()
+        last_number=self.correct_robot_indexes()
         for i in range(req.num_robots):
             turtle_name = f"{req.root_name}_{last_number+i+1}"
             x, y, theta = self.generate_random_pose()

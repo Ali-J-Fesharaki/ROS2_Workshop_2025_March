@@ -1,0 +1,22 @@
+<launch>
+    <!-- Define arguments -->
+    <arg name="pub_frequency" default="10" doc="Publishing frequency in Hz"/>
+    <arg name="velocity_topic" default="cmd_vel" doc="Name of the velocity topic"/>
+    <arg name="position_topic" default="position" doc="Name of the position topic"/>
+    <arg name="subscriber_output" default="log" doc="Output type for subscriber node (screen/log)"/>
+    <arg name="publisher_output" default="screen" doc="Output type for publisher node (screen/log)"/>
+
+    <!-- Launch turtlesim node -->
+    <node pkg="turtlesim" type="turtlesim_node" name="turtlesim" output="screen"/>
+    <!-- Launch position subscriber node -->
+    <node pkg="publisher_subscriber" type="position_subscriber.py" name="position_subscriber" 
+          output="$(arg subscriber_output)">
+        <param name="topic_name" value="$(arg position_topic)"/>
+    </node>
+    <!-- Launch velocity publisher node -->
+    <node pkg="publisher_subscriber" type="velocity_publisher.py" name="velocity_publisher" 
+          output="$(arg publisher_output)">
+        <param name="topic_name" value="$(arg velocity_topic)"/>
+        <param name="frequency" value="$(arg pub_frequency)"/>
+    </node>
+</launch>

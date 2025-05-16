@@ -1,0 +1,21 @@
+<launch>
+    <!-- Define arguments -->
+    <arg name="service_name" default="spawn" doc="Name of the service"/>
+    <arg name="server_output" default="log" doc="Output type for service server node (screen/log)"/>
+    <arg name="client_output" default="screen" doc="Output type for service client node (screen/log)"/>
+    <param name="agent_number" value="10"/>
+    <!-- Launch turtlesim node -->
+    <node pkg="turtlesim" type="turtlesim_node" name="turtlesim" output="screen"/>
+    
+    <!-- Launch service server node -->
+    <node pkg="service_server_client" type="spawn_service_server.py" name="spawn_service_server" 
+          output="$(arg server_output)">
+        <param name="service_name" value="$(arg service_name)"/>
+    </node>
+    
+    <!-- Launch service client node -->
+    <node pkg="service_server_client" type="spawn_service_client.py" name="spawn_service_client" 
+          output="$(arg client_output)">
+        <param name="service_name" value="$(arg service_name)"/>
+    </node>
+</launch>

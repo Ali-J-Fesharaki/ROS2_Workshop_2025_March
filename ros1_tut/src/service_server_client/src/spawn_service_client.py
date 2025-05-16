@@ -13,6 +13,8 @@ class SpawnServiceClient:
         rospy.loginfo(f"Connected to service: {self.service_name}")
 
     def spawn_turtles(self, num_robots, root_name):
+        num_robots = rospy.get_param('agent_number')
+        rospy.loginfo(f"Number of robots to spawn: {num_robots}")
         try:
             request = MultipleSpawnerRequest(num_robots=num_robots, root_name=root_name)
             response = self.spawn_turtles_proxy(request)

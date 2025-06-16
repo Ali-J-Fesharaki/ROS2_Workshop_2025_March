@@ -46,7 +46,7 @@ class NavActionServer:
         result = Robot2dNavResult()
 
         rate = rospy.Rate(10)  # 10 Hz loop rate
-        while not rospy.is_shutdown():
+        while not result.success:
             if self.current_pose is None:
                 continue
 

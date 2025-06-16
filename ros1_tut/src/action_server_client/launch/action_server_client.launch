@@ -2,13 +2,12 @@
     <!-- Define arguments -->
     <arg name="server_output" default="log" doc="Output type for service server node (screen/log)"/>
     <arg name="client_output" default="screen" doc="Output type for service client node (screen/log)"/>
-    <param name="goal_x" value="8.0"/>
-    <param name="goal_y" value="8.0"/>
-    <param name="agent_name" value="turtle_1"/>
+    <arg name="agent_name" default="turtle_1"/>
+
     <!-- Launch turtlesim node -->
 <include file="$(find service_server_client)/launch/service_server_client.launch">
-      <arg name="server_output" value="$(arg server_output)"/>
-      <arg name="client_output" value="$(arg client_output)"/>
+      <arg name="server_output" value="log"/>
+      <arg name="client_output" value="log"/>
 </include>
     
     <!-- Launch service server node -->
@@ -17,7 +16,10 @@
     </node>
     
     <!-- Launch service client node -->
-    <node pkg="action_server_client" type="nav_action_client.py" name="action_server_client" 
+    <node pkg="action_server_client" type="nav_action_client.py" name="R1" 
           output="$(arg client_output)">
+    <param name="goal_x" value="8.0"/>
+    <param name="goal_y" value="8.0"/>
+    <param name="agent_name" value="$(arg agent_name)"/>
     </node>
 </launch>

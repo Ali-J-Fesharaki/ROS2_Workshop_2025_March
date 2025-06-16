@@ -3,7 +3,7 @@
     <arg name="service_name" default="spawn" doc="Name of the service"/>
     <arg name="server_output" default="log" doc="Output type for service server node (screen/log)"/>
     <arg name="client_output" default="screen" doc="Output type for service client node (screen/log)"/>
-    <param name="agent_number" value="10"/>
+    <!--param name="agent_number" value="10"/-->
     <!-- Launch turtlesim node -->
     <node pkg="turtlesim" type="turtlesim_node" name="turtlesim" output="screen"/>
     

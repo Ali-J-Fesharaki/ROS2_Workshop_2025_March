@@ -1,6 +1,5 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.actions import DeclareLaunchArgument, OpaqueFunction,TimerAction, ExecuteProcess
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 import os
@@ -8,14 +7,14 @@ from ament_index_python.packages import get_package_share_directory
 import subprocess
 
 def conditionally_launch_base_nodes(context, *args, **kwargs):
-    actions = []
-    service_name=LaunchConfiguration('service_name').perform(context)
     server_output=LaunchConfiguration('server_output').perform(context)
     client_output=LaunchConfiguration('client_output').perform(context)
-
+    agent_number=LaunchConfiguration('agent_number').perform(context)
+    agent_namespace=LaunchConfiguration('agent_namespace').perform(context)
+    turtlesim_node = None
+    agent_init_killer_node = None
     node_list_result = subprocess.run(['ros2', 'node', 'list'], capture_output=True, text=True)
     nodes = node_list_result.stdout.splitlines()
-    turtlesim_node=None
     if '/turtlesim' not in nodes:
         turtlesim_node=Node(
                 package='turtlesim',
@@ -23,6 +22,28 @@ def conditionally_launch_base_nodes(context, *args, **kwargs):
                 name='turtlesim',
                 output='screen'
             )
+
+        # Wait 1 second, then kill turtle1
+        agent_init_killer_node=TimerAction(
+            period=0.5,
+            actions=[
+                ExecuteProcess(
+                    cmd=['ros2', 'service', 'call', '/kill', 'turtlesim/srv/Kill', '"{name: turtle1}"'],
+                    shell=True
+                )
+            ]
+        )
+
+        # Wait 2 seconds, then spawn turtle_1
+    agent_initializer_node=TimerAction(
+        period=0.5,
+        actions=[
+            ExecuteProcess(
+                cmd=['ros2', 'service', 'call', '/spawn', 'turtlesim/srv/Spawn', f'"{{x: 5.0, y: 5.0, theta: 0.0, name: {agent_namespace}}}"'],
+                shell=True
+            )
+        ]
+    )
         
     # Launch service server node
     spawn_service_server_node=Node(
@@ -30,9 +51,6 @@ def conditionally_launch_base_nodes(context, *args, **kwargs):
         executable='spawn_service_server',
         name='spawn_service_server',
         output=server_output,
-        parameters=[{
-            'service_name': service_name
-        }]
     )
 
     # Launch service client node
@@ -42,7 +60,8 @@ def conditionally_launch_base_nodes(context, *args, **kwargs):
         name='spawn_service_client',
         output=client_output,
         parameters=[{
-            'service_name':service_name
+            'agent_number': agent_number,
+            'agent_name' : agent_namespace
         }]
     )
     nodes_list=[turtlesim_node,spawn_service_client_node, spawn_service_server_node]
@@ -50,11 +69,6 @@ def conditionally_launch_base_nodes(context, *args, **kwargs):
 def generate_launch_description():
     return LaunchDescription([
         # Declare arguments
-        DeclareLaunchArgument(
-            'service_name',
-            default_value='spawn',
-            description='Name of the service'
-        ),
         DeclareLaunchArgument(
             'server_output',
             default_value='log',
@@ -64,6 +78,16 @@ def generate_launch_description():
             'client_output',
             default_value='screen',
             description='Output type for service client node (screen/log)'
+        ),
+        DeclareLaunchArgument(
+            'agent_number',
+            default_value='10',
+            description='Number of agents to spawn'
+        ),
+        DeclareLaunchArgument(
+            'agent_namespace',
+            default_value='turtle',
+            description='Namespace for the spawned turtle'
         ),
         OpaqueFunction(function=conditionally_launch_base_nodes)
         

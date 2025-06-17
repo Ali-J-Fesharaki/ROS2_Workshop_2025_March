@@ -32,14 +32,22 @@ class NavActionServer:
         }
 
     def execute_callback(self, goal):
-        rospy.loginfo(f"Received goal: x={goal.pose.x}, y={goal.pose.y}, robot_name={goal.robot_name}")
+        self.cmd_vel_publisher=None # Clear previous publisher if exists
+        self.pose_subscriber=None # Clear previous subscriber if exists
+        x_error, y_error, distance_to_goal, goal_angle, yaw_error=(None,None,None,None,None) # Clear previous variables
+        self.current_pose = {
+            'x': 0,
+            'y': 0,
+            'yaw':0
+        }
+        rospy.loginfo(f"Received goal: x={goal.pose.x}, y={goal.pose.y}, agent_name={goal.agent_name}")
 
-        # Update topic names based on the robot_name
-        cmd_vel_topic = f"/{goal.robot_name}/cmd_vel"
-        pose_topic = f"/{goal.robot_name}/pose"
+        # Update topic names based on the agent_name
+        cmd_vel_topic = f"/{goal.agent_name}/cmd_vel"
+        pose_topic = f"/{goal.agent_name}/pose"
 
         # Publishers and subscribers
-        self.cmd_vel_publisher = rospy.Publisher(cmd_vel_topic, Twist, queue_size=10)
+        self.cmd_vel_publisher = rospy.Publisher(cmd_vel_topic, Twist, queue_size=1)
         self.pose_subscriber = rospy.Subscriber(pose_topic, Pose, self.pose_callback)
 
         feedback = Robot2dNavFeedback()
@@ -72,17 +80,19 @@ class NavActionServer:
                 result.success = True
                 self.cmd_vel_publisher.publish(Twist())  # Stop the robot
                 self.action_server.set_succeeded(result)
+                self.pose_subscriber.unregister()
+                del self.pose_subscriber , self.cmd_vel_publisher
                 return
 
             # Calculate control commands
             cmd_vel = Twist()
-            if abs(yaw_error) > 0.1:  # Threshold for yaw correction
-                cmd_vel.angular.z = 0.5 if yaw_error > 0 else -0.5
+            if abs(yaw_error) > 0.05:  # Threshold for yaw correction
+                cmd_vel.angular.z = 1 if yaw_error > 0 else -1
             else:
                 cmd_vel.angular.z = 0.0
 
             if distance_to_goal > 0.1:  # Threshold for forward motion
-                cmd_vel.linear.x = 0.2
+                cmd_vel.linear.x = 2
             else:
                 cmd_vel.linear.x = 0.0
 

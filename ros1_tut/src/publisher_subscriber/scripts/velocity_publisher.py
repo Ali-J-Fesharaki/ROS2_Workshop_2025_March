@@ -6,7 +6,7 @@ from geometry_msgs.msg import Twist
 class VelocityPublisher:
     def __init__(self):
         rospy.init_node('velocity_publisher', anonymous=True)
-        self.vel_publisher = rospy.Publisher('/turtle1/cmd_vel', Twist, queue_size=10)
+        self.vel_publisher = rospy.Publisher('cmd_vel', Twist, queue_size=10)
         self.vel_msg=Twist()
         self.ctrl_c=False
         self.rate = rospy.Rate(0.5) 

@@ -12,11 +12,11 @@ class SpawnServiceClient:
         self.spawn_turtles_proxy = rospy.ServiceProxy(self.service_name, MultipleSpawner)
         rospy.loginfo(f"Connected to service: {self.service_name}")
 
-    def spawn_turtles(self, num_robots, root_name):
+    def spawn_turtles(self, num_robots, agent_name):
         num_robots = rospy.get_param('agent_number')
         rospy.loginfo(f"Number of robots to spawn: {num_robots}")
         try:
-            request = MultipleSpawnerRequest(num_robots=num_robots, root_name=root_name)
+            request = MultipleSpawnerRequest(num_robots=num_robots, agent_name=agent_name)
             response = self.spawn_turtles_proxy(request)
             rospy.loginfo(f"Response from service: {response.responses}")
         except rospy.ServiceException as e:
@@ -25,5 +25,5 @@ class SpawnServiceClient:
 if __name__ == '__main__':
     client = SpawnServiceClient()
     num_robots = 3  # Number of turtles to spawn
-    root_name = "turtle"  # Root name for turtles
-    client.spawn_turtles(num_robots, root_name)
+    agent_name = "turtle"  # Root name for turtles
+    client.spawn_turtles(num_robots, agent_name)

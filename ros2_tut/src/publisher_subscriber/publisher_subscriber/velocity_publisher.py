@@ -7,8 +7,10 @@ from geometry_msgs.msg import Twist
 class VelocityPublisher(Node):
     def __init__(self):
         super().__init__('velocity_publisher')
-        self.vel_publisher = self.create_publisher(Twist, '/turtle1/cmd_vel', 10)
-        self.timer = self.create_timer(0.5, self.publish_velocity)  # Timer with 2 Hz frequency
+        self.declare_parameter('frequency', 2.0)
+        frequency=self.get_parameter('frequency').get_parameter_value().double_value  # Declare a parameter for frequency
+        self.vel_publisher = self.create_publisher(Twist, 'cmd_vel', 10)
+        self.timer = self.create_timer(frequency, self.publish_velocity)  # Timer with 2 Hz frequency
         self.vel_msg = Twist()
         self.get_logger().info("Velocity Publisher Node has been started.")
 

@@ -19,11 +19,11 @@ class TurtleSpawnerService(Node):
         self.request=MultipleSpawner.Request()
     def handle_spawn_turtles(self, request, response):
         self.futures=[]
-        self.get_logger().info(f"Received request to spawn {request.num_robots} turtles with root name '{request.root_name}'")
+        self.get_logger().info(f"Received request to spawn {request.num_robots} turtles with root name '{request.agent_namespace}'")
         self.counter_response=0
         last_number=self.correct_robot_indexes()
         for i in range(request.num_robots):
-            turtle_name = f"{request.root_name}_{last_number+i+1}"
+            turtle_name = f"{request.agent_namespace}_{last_number+i+1}"
             x, y, theta = self.generate_random_pose()
             self.get_logger().info(f"Spawning turtle: {turtle_name} at ({x}, {y}, {theta})")
             spawn_request = Spawn.Request()

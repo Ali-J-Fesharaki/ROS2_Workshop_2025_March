@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import rclpy
+import rclpy.logging
 from rclpy.node import Node
 from action_msgs.msg import GoalStatus
 from rclpy.action import ActionClient
@@ -9,21 +10,26 @@ from custom_interfaces.action import Robot2dNav  # Adjust import based on your p
 class NavActionClient(Node):
     def __init__(self):
         super().__init__('nav_action_client')
-
         # Create an action client
-        self._action_client = ActionClient(self, Robot2dNav, 'navigate_to_point')
-
+        self._action_client = ActionClient(self, Robot2dNav, '/navigate_to_point')
+        self.declare_parameter('goal_x',8.0)
+        self.declare_parameter('goal_y',8.0)
+        self.declare_parameter('agent_name','turtle1')
         self.get_logger().info("Waiting for action server to start...")
         self._action_client.wait_for_server()
         self.get_logger().info("Action server started, ready to send goals.")
 
-    def send_goal(self, goal_x, goal_y, robot_name):
+
+    def send_goal(self):
         # Create a goal to send to the action server
+        goal_x=float(self.get_parameter('goal_x').value)
+        goal_y=float(self.get_parameter('goal_y').value)
+        agent_name=self.get_parameter('agent_name').get_parameter_value().string_value # Example agent name
         goal_msg = Robot2dNav.Goal()
         goal_msg.pose.x = goal_x
         goal_msg.pose.y = goal_y
-        goal_msg.robot_name = robot_name
-
+        goal_msg.agent_name = agent_name
+        self.get_logger().info(f"Sending goal to {agent_name} at ({goal_x}, {goal_y})")
         self._action_client.wait_for_server()
 
         self.goal_future= self._action_client.send_goal_async(goal_msg,feedback_callback=self.feedback_callback)
@@ -55,7 +61,7 @@ def main(args=None):
     rclpy.init(args=args)
     try:
         client = NavActionClient()
-        client.send_goal(goal_x=7.0, goal_y=7.0, robot_name="turtle1")  # Example goal
+        client.send_goal()  # Example goal
         rclpy.spin(client)
     except KeyboardInterrupt:
         pass

@@ -1,21 +1,24 @@
 <launch>
     <!-- Define arguments -->
-    <arg name="service_name" default="spawn" doc="Name of the service"/>
     <arg name="server_output" default="log" doc="Output type for service server node (screen/log)"/>
     <arg name="client_output" default="screen" doc="Output type for service client node (screen/log)"/>
-    <!--param name="agent_number" value="10"/-->
+    <arg name="agent_number" default="10" doc="Number of agents to spawn"/>
+    <arg name="agent_name" default="turtle_1" doc="Namespace for the agent"/>
     <!-- Launch turtlesim node -->
     <node pkg="turtlesim" type="turtlesim_node" name="turtlesim" output="screen"/>
-    
-    <!-- Launch service server node -->
+    <node pkg="tools" type="delay.sh" name="delay" args="1"/>
+    <node pkg="rosservice" type="rosservice" name="kill_turtle1" args="call /kill 'turtle1'"/>
+    <!-- Spawn a new turtle named turtle_1 -->
+    <node pkg="rosservice" type="rosservice" name="spawn_turtle_1" args="call /spawn '5.0' '5.0' '0.0' '$(arg agent_name)'" />
+
+    <param name="agent_number" value="$(arg agent_number)"/>
     <node pkg="service_server_client" type="spawn_service_server.py" name="spawn_service_server" 
           output="$(arg server_output)">
-        <param name="service_name" value="$(arg service_name)"/>
+          
     </node>
     
     <!-- Launch service client node -->
     <node pkg="service_server_client" type="spawn_service_client.py" name="spawn_service_client" 
           output="$(arg client_output)">
-        <param name="service_name" value="$(arg service_name)"/>
     </node>
 </launch>

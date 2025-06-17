@@ -9,7 +9,7 @@ class PositionSubscriber(Node):
         super().__init__('position_subscriber')
         self.subscription = self.create_subscription(
             Pose,
-            '/turtle1/pose',
+            'pose',
             self.pose_callback,
             10
         )

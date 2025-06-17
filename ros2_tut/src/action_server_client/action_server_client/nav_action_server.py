@@ -30,7 +30,7 @@ class NavActionServer(Node):
         self.feedback_msg = Robot2dNav.Feedback()
         self.result = Robot2dNav.Result()
         self.result.success = False
-        self.timer = self.create_timer(0.1, self.control_loop)  # 10 Hz
+        
     def pose_callback(self, msg):
         # Update the current pose of the robot
         self.current_pose = {
@@ -40,11 +40,18 @@ class NavActionServer(Node):
         }
 
     def execute_callback(self, goal_handle):
-        self.get_logger().info(f"Received goal: x={goal_handle.request.pose.x}, y={goal_handle.request.pose.y}, robot_name={goal_handle.request.robot_name}")
-
-        # Update topic names based on the robot_name
-        cmd_vel_topic = f"/{goal_handle.request.robot_name}/cmd_vel"
-        pose_topic = f"/{goal_handle.request.robot_name}/pose"
+        self.get_logger().info(f"Received goal: x={goal_handle.request.pose.x}, y={goal_handle.request.pose.y}, agent_name={goal_handle.request.agent_name}")
+        self.timer = self.create_timer(0.1, self.control_loop)  # 10 Hz
+        self.operation_finished=False
+        self.result.success=False
+        # Update topic names based on the agent_name
+        self.current_pose = {
+            'x': 0,
+            'y': 0,
+            'yaw': 0
+        }
+        cmd_vel_topic = f"/{goal_handle.request.agent_name}/cmd_vel"
+        pose_topic = f"/{goal_handle.request.agent_name}/pose"
 
         # Publishers and subscribers
         self.cmd_vel_publisher = self.create_publisher(Twist, cmd_vel_topic, 10)
@@ -85,17 +92,18 @@ class NavActionServer(Node):
             self.cmd_vel_publisher.publish(Twist())  # Stop the robot
             self.operation_finished = True
             self.timer.cancel()  # Stop the timer
+            self.pose_subscription.destroy()
             return 
 
         # Calculate control commands
         cmd_vel = Twist()
-        if abs(yaw_error) > 0.1:  # Threshold for yaw correction
-            cmd_vel.angular.z = 0.5 if yaw_error > 0 else -0.5
+        if abs(yaw_error) > 0.05:  # Threshold for yaw correction
+            cmd_vel.angular.z = 1.0 if yaw_error > 0 else -1.0
         else:
             cmd_vel.angular.z = 0.0
 
         if distance_to_goal > 0.1:  # Threshold for forward motion
-            cmd_vel.linear.x = 0.2
+            cmd_vel.linear.x = 1.0
         else:
             cmd_vel.linear.x = 0.0
 

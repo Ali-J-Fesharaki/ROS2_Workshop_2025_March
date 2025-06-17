@@ -12,12 +12,12 @@ class TurtleSpawnerService:
         rospy.loginfo("Turtle Spawner Service is ready.")
 
     def handle_spawn_turtles(self, req):
-        rospy.loginfo(f"Received request to spawn {req.num_robots} turtles with root name '{req.root_name}'")
+        rospy.loginfo(f"Received request to spawn {req.num_robots} turtles with root name '{req.agent_name}'")
         responses = []
         topics_names = rospy.get_published_topics()
         last_number=self.correct_robot_indexes()
         for i in range(req.num_robots):
-            turtle_name = f"{req.root_name}_{last_number+i+1}"
+            turtle_name = f"{req.agent_name}_{last_number+i+1}"
             x, y, theta = self.generate_random_pose()
             rospy.loginfo(f"Spawning turtle: {turtle_name} at ({x}, {y}, {theta})")
             try:

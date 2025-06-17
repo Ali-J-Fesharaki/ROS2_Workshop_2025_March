@@ -6,7 +6,7 @@ from turtlesim.msg import Pose
 class PositionSubscriber:
     def __init__(self):
         rospy.init_node('position_subscriber', anonymous=True)
-        self.pos_subscriber = rospy.Subscriber('/turtle1/pose', Pose, self.pose_callback)
+        self.pos_subscriber = rospy.Subscriber("pose", Pose, self.pose_callback)
         rospy.loginfo("Position Subscriber Node has been started.")
 
     def pose_callback(self, pos_msg):

@@ -1,63 +1,28 @@
-from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration
-from launch_ros.actions import Node
+<launch>
+    <!-- Define arguments -->
+    <arg name="pub_frequency" default="10" doc="Publishing frequency in Hz"/>
+    <arg name="subscriber_output" default="log" doc="Output type for subscriber node (screen/log)"/>
+    <arg name="publisher_output" default="screen" doc="Output type for publisher node (screen/log)"/>
+    <arg name="agent_name" default="turtle_1" doc="Namespace for the agent"/>
 
+    <!-- Launch turtlesim node -->
+    <node pkg="turtlesim" type="turtlesim_node" name="turtlesim" output="screen"/>
+    <node pkg="tools" type="delay.sh" name="delay" args="1"/>
+    <node pkg="rosservice" type="rosservice" name="kill_turtle1" args="call /kill 'turtle1'"/>
+    <!-- Spawn a new turtle named turtle_1 -->
+    <node pkg="rosservice" type="rosservice" name="spawn_turtle_1" args="call /spawn '5.0' '5.0' '0.0' '$(arg agent_name)'" />
 
-def generate_launch_description():
-    # Declare launch arguments
-    pub_frequency_arg = DeclareLaunchArgument(
-        'pub_frequency', default_value='10', description='Publishing frequency in Hz'
-    )
-    velocity_topic_arg = DeclareLaunchArgument(
-        'velocity_topic', default_value='cmd_vel', description='Name of the velocity topic'
-    )
-    position_topic_arg = DeclareLaunchArgument(
-        'position_topic', default_value='position', description='Name of the position topic'
-    )
-    subscriber_output_arg = DeclareLaunchArgument(
-        'subscriber_output', default_value='log', description='Output type for subscriber node (screen/log)'
-    )
-    publisher_output_arg = DeclareLaunchArgument(
-        'publisher_output', default_value='screen', description='Output type for publisher node (screen/log)'
-    )
-
-    # Nodes
-    turtlesim_node = Node(
-        package='turtlesim',
-        executable='turtlesim_node',
-        name='turtlesim',
-        output='screen'
-    )
-
-    position_subscriber_node = Node(
-        package='publisher_subscriber',
-        executable='position_subscriber.py',
-        name='position_subscriber',
-        output=LaunchConfiguration('subscriber_output'),
-        parameters=[{
-            'topic_name': LaunchConfiguration('position_topic')
-        }]
-    )
-
-    velocity_publisher_node = Node(
-        package='publisher_subscriber',
-        executable='velocity_publisher.py',
-        name='velocity_publisher',
-        output=LaunchConfiguration('publisher_output'),
-        parameters=[{
-            'topic_name': LaunchConfiguration('velocity_topic'),
-            'frequency': LaunchConfiguration('pub_frequency')
-        }]
-    )
-
-    return LaunchDescription([
-        pub_frequency_arg,
-        velocity_topic_arg,
-        position_topic_arg,
-        subscriber_output_arg,
-        publisher_output_arg,
-        turtlesim_node,
-        position_subscriber_node,
-        velocity_publisher_node
-    ])
+    <!-- Launch position subscriber node -->
+    <group ns="$(arg agent_name)">
+    <node pkg="publisher_subscriber" type="position_subscriber.py" name="position_subscriber" 
+          output="$(arg subscriber_output)">
+          <!-- <remap from="/turtle1/pose" to="/pose"/> -->
+    </node>
+    <!-- Launch velocity publisher node -->
+    <node pkg="publisher_subscriber" type="velocity_publisher.py" name="velocity_publisher" 
+          output="$(arg publisher_output)">
+        <param name="frequency" value="$(arg pub_frequency)"/>
+        <!-- <remap from="/turtle1/cmd_vel" to="/cmd_vel"/> -->
+    </node>
+    </group>
+</launch>

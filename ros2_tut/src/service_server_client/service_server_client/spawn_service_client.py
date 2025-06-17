@@ -11,16 +11,20 @@ class SpawnServiceClient(Node):
         super().__init__('spawn_service_client')
         self.service_name = 'spawn_turtles'
         self.cli = self.create_client(MultipleSpawner, self.service_name)
-
+        self.declare_parameter('agent_number', 5)  # Default number of turtles
+        self.declare_parameter('agent_namespace','turtle')
+           
         while not self.cli.wait_for_service(timeout_sec=1.0):
             self.get_logger().info(f'Waiting for service {self.service_name} to become available...')
 
         self.get_logger().info(f"Connected to service: {self.service_name}")
+        
 
-    def spawn_turtles(self, num_turtles, root_name):
+    def spawn_turtles(self):
         request = MultipleSpawner.Request()
-        request.num_robots = num_turtles
-        request.root_name = root_name
+
+        request.num_robots = int(self.get_parameter('agent_number').value)
+        request.agent_namespace = self.get_parameter('agent_namespace').value
 
         future = self.cli.call_async(request)
         future.add_done_callback(self.future_callback)
@@ -48,9 +52,7 @@ def main(args=None):
     rclpy.init(args=args)
     client = SpawnServiceClient()
 
-    num_turtles = 3  # Number of turtles to spawn
-    root_name = "turtle"  # Root name for turtles
-    client.spawn_turtles(num_turtles, root_name)
+    client.spawn_turtles()
     rclpy.spin(client)
     client.destroy_node()
     rclpy.shutdown()

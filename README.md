@@ -112,18 +112,6 @@ Please open an issue or pull request.
 
 ---
 
-## License
 
-This project currently uses placeholder licenses in some packages. Please update the license information as appropriate for your use case.
 
----
 
-## Maintainer
-
-Ali J. Fesharaki  
-ajf1375@aut.ac.ir
-
----
-
-> **For more details, browse the source code and additional files on [GitHub](https://github.com/Ali-J-Fesharaki/ROS2_Workshop_2025_March).**  
-> _Note: This README was generated from the latest available code search results. The file list is incomplete due to search result limits. For a full list, visit the repository directly._

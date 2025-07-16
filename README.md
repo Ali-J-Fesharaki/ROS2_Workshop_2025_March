@@ -1,6 +1,3 @@
-# ROS2_Workshop_2025_March
-
-Welcome to the **ROS2 Workshop 2025 (March Edition)** repository!  
 This resource is designed to help students and enthusiasts grasp the core concepts of both ROS 1 and ROS 2, focusing on practical implementations such as publishers, services, and actions. The repo features hands-on examples—primarily using the classic `turtlesim` simulator—including the foundation for scalable multi-agent tasks (planned for future releases).
 
 **Note:** This repository is under active development. The multi-agent project (scaling turtles on turtlesim) is not yet available in this version, but the codebase is structured to allow for these future expansions.
